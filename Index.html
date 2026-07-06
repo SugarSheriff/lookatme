@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Liam Hulsey — Software Developer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="logo">liam<span>.</span>hulsey</div>
+    <div class="navlinks">
+      <a href="#experience">Experience</a>
+      <a href="#skills">Stack</a>
+      <a href="#about">About</a>
+      <a href="#contact">Contact</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="hero">
+  <div class="wrap">
+    <div class="eyebrow">Available for new roles</div>
+    <h1 class="hero-title">I make systems that don't talk to each other <span class="accent">start talking.</span></h1>
+    <p class="hero-sub">Software developer specializing in integration engineering — connecting ERPs, project platforms, DAMs, and databases into pipelines that actually hold up in production.</p>
+    <div class="hero-cta">
+      <a class="btn btn-primary" href="#contact">Get in touch</a>
+      <a class="btn btn-ghost" href="#experience">See the work</a>
+    </div>
+
+    <div class="pipeline" aria-hidden="true">
+      <svg viewBox="0 0 900 130" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <path id="pipepath" d="M 60 65 L 300 65 L 300 30 L 460 30 L 460 100 L 620 100 L 620 65 L 840 65" fill="none"/>
+        </defs>
+        <path d="M 60 65 L 300 65 L 300 30 L 460 30 L 460 100 L 620 100 L 620 65 L 840 65"
+              fill="none" stroke="var(--line)" stroke-width="2" stroke-dasharray="4 6"/>
+
+        <g class="pipe-node-group">
+          <rect class="pipe-node-box" x="10" y="45" width="100" height="40" rx="6"/>
+          <text class="pipe-node" x="60" y="69">SAP B1</text>
+        </g>
+        <g class="pipe-node-group">
+          <rect class="pipe-node-box" x="250" y="10" width="100" height="40" rx="6"/>
+          <text class="pipe-node" x="300" y="34">Wrike</text>
+        </g>
+        <g class="pipe-node-group">
+          <rect class="pipe-node-box" x="410" y="80" width="100" height="40" rx="6"/>
+          <text class="pipe-node" x="460" y="104">SQL Server</text>
+        </g>
+        <g class="pipe-node-group">
+          <rect class="pipe-node-box" x="570" y="45" width="100" height="40" rx="6"/>
+          <text class="pipe-node" x="620" y="69">DAM / EDI</text>
+        </g>
+        <g class="pipe-node-group">
+          <rect class="pipe-node-box" x="790" y="45" width="100" height="40" rx="6"/>
+          <text class="pipe-node" x="840" y="69">Your stack</text>
+        </g>
+
+        <circle class="packet" r="4">
+          <animateMotion dur="4s" repeatCount="indefinite" rotate="auto">
+            <mpath href="#pipepath"/>
+          </animateMotion>
+        </circle>
+        <circle class="packet" r="4" opacity="0.6">
+          <animateMotion dur="4s" begin="1.3s" repeatCount="indefinite" rotate="auto">
+            <mpath href="#pipepath"/>
+          </animateMotion>
+        </circle>
+        <circle class="packet" r="4" opacity="0.35">
+          <animateMotion dur="4s" begin="2.6s" repeatCount="indefinite" rotate="auto">
+            <mpath href="#pipepath"/>
+          </animateMotion>
+        </circle>
+      </svg>
+    </div>
+  </div>
+</header>
+
+<section id="experience">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-num">01 — Where I've been</span>
+      <h2 class="section-title">Experience</h2>
+    </div>
+
+    <div class="role">
+      <div class="role-meta">Mar 2026 — Present<span class="company">Design Resources Inc.</span></div>
+      <div>
+        <h3 class="role-title">Software Developer</h3>
+        <ul>
+          <li>Architected PowerShell automation integrations between SAP Business One, Wrike, and EDI platforms, reducing manual processing overhead and improving cross-system data consistency.</li>
+          <li>Developed SQL Server stored procedures and SSRS reports for Nike Promo/DPOM workflows, resolving complex filtering and data accuracy issues.</li>
+          <li>Built REST API integration scripts in PowerShell and JavaScript for Wrike, Gnosis, and Orange Logic DAM, cutting API call volume significantly through batching.</li>
+          <li>Engineered Wrike task automation using PowerShell and C# — auto-assignee sync, store transition workflows, IIT integrations.</li>
+          <li>Maintained and extended Angular/TypeScript and C#/ASP.NET applications across frontend and backend layers.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="role">
+      <div class="role-meta">Apr 2025 — Mar 2026<span class="company">Design Resources Inc.</span></div>
+      <div>
+        <h3 class="role-title">Application Support Analyst</h3>
+        <ul>
+          <li>Supported enterprise data platforms with a focus on integration stability and system resilience.</li>
+          <li>Improved performance through diagnostic analysis of recurring issues, working closely with internal teams and vendors.</li>
+          <li>Built targeted PowerShell utilities to capture logs, analyze failure patterns, and accelerate resolution of integration issues.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="role">
+      <div class="role-meta">Mar 2024 — Mar 2025<span class="company">Flint Hills Resources</span></div>
+      <div>
+        <h3 class="role-title">Product Support Analyst</h3>
+        <ul>
+          <li>Troubleshot complex data systems and integrations to maintain reliability and operational uptime.</li>
+          <li>Identified and corrected upstream/downstream data mismatches, stabilizing high-volume operational pipelines.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="role">
+      <div class="role-meta">May 2023 — Jan 2024<span class="company">ChannelMix</span></div>
+      <div>
+        <h3 class="role-title">Tier I Support Engineer</h3>
+        <ul>
+          <li>Served as the initial technical contact, resolving client issues across data and reporting platforms.</li>
+          <li>Classified issues and analyzed logs to route complex API and data failures with full diagnostic context for engineering teams.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="skills">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-num">02 — What I build with</span>
+      <h2 class="section-title">Stack</h2>
+    </div>
+    <div class="skill-groups">
+      <div class="skill-group">
+        <h3>Languages &amp; Frameworks</h3>
+        <div class="chip-row">
+          <span class="chip">Angular</span>
+          <span class="chip">React</span>
+          <span class="chip">TypeScript</span>
+          <span class="chip">JavaScript</span>
+          <span class="chip">C# / .NET</span>
+          <span class="chip">Python</span>
+          <span class="chip">Express</span>
+          <span class="chip">Bootstrap</span>
+          <span class="chip">SASS</span>
+        </div>
+      </div>
+      <div class="skill-group">
+        <h3>Databases &amp; Reporting</h3>
+        <div class="chip-row">
+          <span class="chip">SQL Server</span>
+          <span class="chip">T-SQL</span>
+          <span class="chip">SSRS</span>
+          <span class="chip">MongoDB</span>
+          <span class="chip">EDI</span>
+          <span class="chip">Bizweaver</span>
+        </div>
+      </div>
+      <div class="skill-group">
+        <h3>Cloud &amp; Integration</h3>
+        <div class="chip-row">
+          <span class="chip">AWS</span>
+          <span class="chip">Azure</span>
+          <span class="chip">PowerShell</span>
+          <span class="chip">Git</span>
+          <span class="chip">REST APIs</span>
+          <span class="chip">SAP B1</span>
+          <span class="chip">Postman</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="about">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-num">03 — The short version</span>
+      <h2 class="section-title">About</h2>
+    </div>
+    <div class="about-grid">
+      <div class="about-text">
+        <p>I started on the support side — being the first line of defense when data systems broke — and that gave me a habit that's stuck with me: I care about why something failed, not just that it did. That's carried straight into how I build integrations now.</p>
+        <p>These days I spend most of my time getting enterprise platforms (SAP, Wrike, SQL Server, DAM systems, EDI feeds) to hand data back and forth reliably, usually via PowerShell, C#, and a fair amount of REST API cleanup. I like the puzzle of it — figuring out where a workflow breaks and building something sturdier in its place.</p>
+        <p>Outside of work, I've volunteered with the Juvenile Diabetes Research Foundation since 2005.</p>
+      </div>
+      <div class="about-credentials">
+        <div class="credential">
+          <div class="cred-title">BS, Business Administration — Information Systems</div>
+          <div class="cred-meta">Louisiana State University of Alexandria · 2025</div>
+        </div>
+        <div class="credential">
+          <div class="cred-title">Full Stack Web Development</div>
+          <div class="cred-meta">Kansas University · 2023</div>
+        </div>
+        <div class="credential">
+          <div class="cred-title">AWS Certified Cloud Practitioner</div>
+          <div class="cred-meta">Amazon Web Services · 2024</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="contact" class="contact">
+  <div class="wrap">
+    <span class="section-num">04 — Let's connect</span>
+    <h2 class="section-title">Got a role where things need to talk to each other?</h2>
+    <p>I'm open to new opportunities — reach out however's easiest.</p>
+    <div class="contact-links">
+      <a class="btn btn-primary" href="mailto:liamchulsey@gmail.com">Email me</a>
+      <a class="btn btn-ghost" href="tel:+18165105183">(816) 510-5183</a>
+      <a class="btn btn-ghost" href="https://github.com/SugarSheriff" id="github-link" target="_blank" rel="noopener">GitHub</a>
+      <a class="btn btn-ghost" href="#" id="linkedin-link">LinkedIn</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  Built by Liam Hulsey · Overland Park, KS
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
