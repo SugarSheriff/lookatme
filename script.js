@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const FRUIT_COLORS = ['#ff6b5e', '#f4e04d', '#4ade80'];
 
   const GRAVITY = 0.0022;
-  const JUMP_VELOCITY = -0.72;
+  const JUMP_VELOCITY = -0.62;
   const GROUND_SPEED_START = 0.28; // px/ms
   const GROUND_SPEED_MAX = 0.55;
 
