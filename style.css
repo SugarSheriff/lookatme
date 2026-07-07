@@ -294,11 +294,12 @@ footer {
   border-radius: 10px;
   background: var(--ink-2);
   overflow: hidden;
+  aspect-ratio: 700 / 200;
 }
 #game-canvas {
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
   cursor: pointer;
   touch-action: manipulation;
 }
