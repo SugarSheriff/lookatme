@@ -103,6 +103,9 @@ document.addEventListener('DOMContentLoaded', () => {
     line: 'rgba(238,240,244,0.14)'
   };
 
+  const GHOST_COLORS = ['#ff6b5e', '#5ec8ff', '#f4a4e0', '#ffb347'];
+  const FRUIT_COLORS = ['#ff6b5e', '#f4e04d', '#4ade80'];
+
   const GRAVITY = 0.0022;
   const JUMP_VELOCITY = -0.72;
   const GROUND_SPEED_START = 0.28; // px/ms
@@ -117,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
   bestEl.textContent = best;
 
   let state = 'idle'; // idle | playing | over
-  let player, obstacles, speed, distance, lastTime, mouthPhase, rafId;
+  let player, obstacles, speed, distance, lastTime, mouthPhase, rafId, bonusPoints;
 
   function resetState() {
     player = {
@@ -133,13 +136,35 @@ document.addEventListener('DOMContentLoaded', () => {
     distance = 0;
     mouthPhase = 0;
     spawnTimer = 0;
+    bonusPoints = 0;
   }
 
   let spawnTimer = 0;
 
   function spawnObstacle() {
-    const h = 20 + Math.random() * 10;
-    obstacles.push({ x: W + 20, y: GROUND_Y - h, w: 18, h, passed: false });
+    const isFruit = Math.random() < 0.3;
+    if (isFruit) {
+      const fruitH = 40 + Math.random() * 30;
+      obstacles.push({
+        type: 'fruit',
+        x: W + 20,
+        y: GROUND_Y - fruitH,
+        w: 16,
+        h: 16,
+        color: FRUIT_COLORS[Math.floor(Math.random() * FRUIT_COLORS.length)],
+        caught: false
+      });
+    } else {
+      const h = 20 + Math.random() * 10;
+      obstacles.push({
+        type: 'ghost',
+        x: W + 20,
+        y: GROUND_Y - h,
+        w: 18,
+        h,
+        color: GHOST_COLORS[Math.floor(Math.random() * GHOST_COLORS.length)]
+      });
+    }
   }
 
   function jump() {
@@ -167,8 +192,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function endGame() {
     state = 'over';
-    if (Math.floor(distance / 10) > best) {
-      best = Math.floor(distance / 10);
+    if (Math.floor(distance / 10) + bonusPoints > best) {
+      best = Math.floor(distance / 10) + bonusPoints;
       bestEl.textContent = best;
       try { localStorage.setItem('pacjump_best', String(best)); } catch (e) {}
     }
@@ -213,7 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function drawGhost(o) {
     const x = o.x, y = o.y, w = o.w, h = o.h;
-    ctx.fillStyle = COLORS.coral;
+    ctx.fillStyle = o.color || COLORS.coral;
     ctx.beginPath();
     ctx.moveTo(x, y + h);
     ctx.lineTo(x, y + h * 0.4);
@@ -234,6 +259,24 @@ document.addEventListener('DOMContentLoaded', () => {
     ctx.arc(x + w * 0.35, y + h * 0.42, w * 0.1, 0, Math.PI * 2);
     ctx.arc(x + w * 0.65, y + h * 0.42, w * 0.1, 0, Math.PI * 2);
     ctx.fill();
+  }
+
+  function drawFruit(o) {
+    const cx = o.x + o.w / 2;
+    const cy = o.y + o.h / 2;
+    const r = o.w / 2;
+
+    ctx.fillStyle = o.color || COLORS.coral;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = COLORS.mint;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - r);
+    ctx.lineTo(cx + 2, cy - r - 6);
+    ctx.stroke();
   }
 
   function loop(now) {
@@ -271,17 +314,25 @@ document.addEventListener('DOMContentLoaded', () => {
       const py1 = player.y + 4, py2 = player.y + player.h - 2;
       const ox1 = o.x, ox2 = o.x + o.w;
       const oy1 = o.y, oy2 = o.y + o.h;
-      if (px2 > ox1 && px1 < ox2 && py2 > oy1 && py1 < oy2) {
+      const overlaps = px2 > ox1 && px1 < ox2 && py2 > oy1 && py1 < oy2;
+
+      if (o.type === 'fruit') {
+        if (overlaps && !o.caught) {
+          o.caught = true;
+          bonusPoints += 25;
+          obstacles.splice(i, 1);
+        }
+      } else if (overlaps) {
         endGame();
       }
     }
 
     ctx.clearRect(0, 0, W, H);
     drawGround();
-    obstacles.forEach(drawGhost);
+    obstacles.forEach((o) => (o.type === 'fruit' ? drawFruit(o) : drawGhost(o)));
     drawPacman();
 
-    scoreEl.textContent = Math.floor(distance / 10);
+    scoreEl.textContent = Math.floor(distance / 10) + bonusPoints;
 
     if (state === 'playing') {
       rafId = requestAnimationFrame(loop);
