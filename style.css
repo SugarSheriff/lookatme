@@ -469,3 +469,70 @@ footer {
   transition: opacity 0.15s ease;
 }
 .game-overlay.hidden { opacity: 0; pointer-events: none; }
+/* ---------- BODY TEXTURE ---------- */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(rgba(238,240,244,0.05) 1px, transparent 1px);
+  background-size: 28px 28px;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.6;
+}
+nav, .hero, section, footer { position: relative; z-index: 1; }
+
+/* ---------- MOBILE NAV ---------- */
+.nav-toggle {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  flex-direction: column;
+  gap: 5px;
+}
+.nav-toggle span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--paper);
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+.nav-toggle.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.nav-toggle.open span:nth-child(2) { opacity: 0; }
+.nav-toggle.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+@media (max-width: 640px) {
+  .nav-toggle { display: flex; }
+  .navlinks {
+    display: flex;
+    position: fixed;
+    top: 64px;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    gap: 0;
+    background: rgba(16,20,31,0.97);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+  .navlinks.open { max-height: 300px; }
+  .navlinks a { padding: 16px 32px; border-bottom: 1px solid var(--line); }
+}
+
+/* ---------- MAGNETIC BUTTONS ---------- */
+.btn { will-change: transform; }
+
+/* ---------- GAME NEW BEST FLASH ---------- */
+.game-hud .game-best.flash .game-best-label,
+.game-hud .game-best.flash span span {
+  animation: bestFlash 0.6s ease;
+}
+@keyframes bestFlash {
+  0%, 100% { color: var(--yellow); text-shadow: none; }
+  40% { color: var(--paper); text-shadow: 0 0 12px var(--yellow); }
+}
