@@ -3,27 +3,87 @@ document.addEventListener('DOMContentLoaded', () => {
   const sections = document.querySelectorAll('section[id], header[id]');
   const navLinks = document.querySelectorAll('.navlinks a');
 
-  if (!sections.length || !navLinks.length) return;
+  if (sections.length && navLinks.length) {
+    const setActive = (id) => {
+      navLinks.forEach((link) => {
+        link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
+      });
+    };
 
-  const setActive = (id) => {
-    navLinks.forEach((link) => {
-      const isActive = link.getAttribute('href') === `#${id}`;
-      link.style.color = isActive ? 'var(--paper)' : '';
-    });
+    const navObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) setActive(entry.target.id);
+        });
+      },
+      { rootMargin: '-40% 0px -50% 0px' }
+    );
+
+    sections.forEach((section) => navObserver.observe(section));
+  }
+
+  // ---------- Scroll progress bar ----------
+  const progress = document.createElement('div');
+  progress.className = 'scroll-progress';
+  document.body.appendChild(progress);
+
+  const updateProgress = () => {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+    progress.style.width = `${pct}%`;
   };
+  window.addEventListener('scroll', updateProgress, { passive: true });
+  updateProgress();
 
-  const observer = new IntersectionObserver(
+  // ---------- Scroll reveal ----------
+  const revealTargets = document.querySelectorAll(
+    '.section-head, .role, .credential, .skill-group, .about-text'
+  );
+  revealTargets.forEach((el) => el.classList.add('reveal'));
+
+  const revealObserver = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
-          setActive(entry.target.id);
+          entry.target.classList.add('in-view');
+          revealObserver.unobserve(entry.target);
         }
       });
     },
-    { rootMargin: '-40% 0px -50% 0px' }
+    { threshold: 0.15, rootMargin: '0px 0px -60px 0px' }
   );
+  revealTargets.forEach((el) => revealObserver.observe(el));
 
-  sections.forEach((section) => observer.observe(section));
+  // ---------- Chip stagger-in ----------
+  const chipGroups = document.querySelectorAll('.chip-row');
+  const chipObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        const chips = entry.target.querySelectorAll('.chip');
+        chips.forEach((chip, i) => {
+          chip.style.animationDelay = `${i * 45}ms`;
+          chip.classList.add('chip-in');
+        });
+        chipObserver.unobserve(entry.target);
+      });
+    },
+    { threshold: 0.2 }
+  );
+  chipGroups.forEach((group) => chipObserver.observe(group));
+
+  // ---------- Project card cursor spotlight ----------
+  const projectCards = document.querySelectorAll('#projects .role');
+  projectCards.forEach((card) => {
+    card.addEventListener('mousemove', (e) => {
+      const rect = card.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      card.style.setProperty('--mx', `${x}%`);
+      card.style.setProperty('--my', `${y}%`);
+    });
+  });
 });
 
 // Animated chomping Pac-Man favicon, drawn on a canvas and swapped in as
@@ -42,8 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.head.appendChild(link);
   }
 
-  // Mouth angle oscillates between fully open and closed.
-  const frameAngles = [36, 20, 4, 20]; // degrees of mouth opening, half-angle
+  const frameAngles = [36, 20, 4, 20];
   let frame = 0;
 
   function drawFrame(mouthHalfAngle) {
@@ -61,7 +120,6 @@ document.addEventListener('DOMContentLoaded', () => {
     ctx.closePath();
     ctx.fill();
 
-    // eye
     ctx.fillStyle = '#10141f';
     ctx.beginPath();
     ctx.arc(cx - 1, cy - r * 0.5, r * 0.09, 0, Math.PI * 2);
@@ -108,7 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const GRAVITY = 0.0022;
   const JUMP_VELOCITY = -0.62;
-  const GROUND_SPEED_START = 0.28; // px/ms
+  const GROUND_SPEED_START = 0.28;
   const GROUND_SPEED_MAX = 0.55;
 
   let best = 0;
@@ -119,7 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   bestEl.textContent = best;
 
-  let state = 'idle'; // idle | playing | over
+  let state = 'idle';
   let player, obstacles, speed, distance, lastTime, mouthPhase, rafId, bonusPoints;
 
   function resetState() {
@@ -210,7 +268,6 @@ document.addEventListener('DOMContentLoaded', () => {
     ctx.stroke();
 
     ctx.fillStyle = COLORS.line;
-    const offset = (distance * speed * 0) % 20; // static dashes, simple
     for (let x = -20; x < W + 20; x += 24) {
       const dx = ((x - (distance % 24)) % (W + 40));
       ctx.fillRect(dx, GROUND_Y + 6, 10, 2);
@@ -244,7 +301,6 @@ document.addEventListener('DOMContentLoaded', () => {
     ctx.lineTo(x, y + h * 0.4);
     ctx.arc(x + w / 2, y + h * 0.4, w / 2, Math.PI, 0);
     ctx.lineTo(x + w, y + h);
-    // scalloped bottom
     const scallops = 3;
     const sw = w / scallops;
     for (let i = scallops; i > 0; i--) {
@@ -339,7 +395,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // static render for idle state
   function drawIdle() {
     resetState();
     ctx.clearRect(0, 0, W, H);
