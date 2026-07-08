@@ -1,359 +1,348 @@
-// Highlights the current section's nav link as the user scrolls.
-document.addEventListener('DOMContentLoaded', () => {
-  const sections = document.querySelectorAll('section[id], header[id]');
-  const navLinks = document.querySelectorAll('.navlinks a');
+// FlickFinder — decision-tree client for TMDB
+//
+// NOTE ON THE API TOKEN BELOW:
+// This is a client-side static site (GitHub Pages), so there is no server
+// to hide a secret behind — anything here is visible in view-source to
+// anyone who visits the page. TMDB's read-access token is a read-only,
+// rate-limited key with no billing or personal data attached, so this is
+// an accepted pattern for small client-side projects. Just don't reuse
+// this same token for anything that needs to stay private.
+const API_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJmODYwZWVlZmZlZTdmY2NjODQ4Y2E0NWQ4MmE3YTlhNCIsIm5iZiI6MTc4MzQ3NTc0NC45NSwic3ViIjoiNmE0ZGFlMjA3ZTAxMjYzMmE5NGNlN2ZiIiwic2NvcGVzIjpbImFwaV9yZWFkIl0sInZlcnNpb24iOjF9.2g5xHBP-Kh5XMWZJFFKnCMQOyYxvmYNNt8jC8F2VPrc";
+const TMDB_BASE = "https://api.themoviedb.org/3";
+const IMG_BASE = "https://image.tmdb.org/t/p/w342";
 
-  if (!sections.length || !navLinks.length) return;
+let answers = {};
+let step = 0;
+const TOTAL_STEPS = 4;
 
-  const setActive = (id) => {
-    navLinks.forEach((link) => {
-      const isActive = link.getAttribute('href') === `#${id}`;
-      link.style.color = isActive ? 'var(--paper)' : '';
-    });
-  };
+// keyboard-routing state
+let activeOptions = [];   // [{value, onPick}] for the currently rendered question
+let screenMode = 'question'; // 'question' | 'result' | 'empty' | 'error'
 
-  const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          setActive(entry.target.id);
-        }
-      });
-    },
-    { rootMargin: '-40% 0px -50% 0px' }
+const bodyArea = document.getElementById('bodyArea');
+const traceRail = document.getElementById('traceRail');
+const statusTag = document.getElementById('statusTag');
+
+function renderTrace(activeCount){
+  traceRail.innerHTML = '';
+  for(let i=0;i<TOTAL_STEPS;i++){
+    const seg = document.createElement('div');
+    let cls = 'trace-seg';
+    if(i < activeCount){
+      cls += ' lit';
+      if(i === activeCount - 1) cls += ' sweep'; // only the just-completed node animates
+    }
+    seg.className = cls;
+    traceRail.appendChild(seg);
+  }
+}
+
+function renderQuestion(eyebrow, title, options, onPick, singleCol){
+  screenMode = 'question';
+  activeOptions = options.map(o => ({ value: o.value, onPick }));
+
+  statusTag.textContent = `node ${step+1} / ${TOTAL_STEPS}`;
+  renderTrace(step);
+  bodyArea.innerHTML = '';
+  bodyArea.classList.remove('node-enter');
+  void bodyArea.offsetWidth; // restart animation
+  bodyArea.classList.add('node-enter');
+
+  const eyeEl = document.createElement('div');
+  eyeEl.className = 'eyebrow';
+  eyeEl.textContent = eyebrow;
+  bodyArea.appendChild(eyeEl);
+
+  const h1 = document.createElement('h1');
+  h1.textContent = title;
+  bodyArea.appendChild(h1);
+
+  const optsWrap = document.createElement('div');
+  optsWrap.className = 'options' + (singleCol ? ' single-col' : '');
+  options.forEach((o, i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.innerHTML = `<span class="key-hint">${i+1}</span><span class="label">${o.label}</span><span class="sub">${o.sub||''}</span>`;
+    btn.onclick = () => onPick(o.value);
+    optsWrap.appendChild(btn);
+  });
+  bodyArea.appendChild(optsWrap);
+
+  const status = document.createElement('div');
+  status.className = 'status-line';
+  status.textContent = step === 0 ? 'tip: press 1–' + options.length + ' to answer' : '';
+  bodyArea.appendChild(status);
+}
+
+function stepType(){
+  step = 0;
+  renderQuestion(
+    'route.select_medium',
+    "What's on the menu tonight?",
+    [
+      {label:'A movie', sub:'~90–180 min, self-contained', value:'movie'},
+      {label:'A TV show', sub:'episodic, something to sink into', value:'tv'}
+    ],
+    (v)=>{ answers.type = v; step=1; stepMood(); }
   );
+}
 
-  sections.forEach((section) => observer.observe(section));
+function stepMood(){
+  renderQuestion(
+    'route.select_mood',
+    'What mood are you routing for?',
+    [
+      {label:'Laughs', sub:'comedy', value:'laughs'},
+      {label:'Tension', sub:'thriller / mystery', value:'tension'},
+      {label:'The feels', sub:'drama', value:'feels'},
+      {label:'Mind-bending', sub:'sci-fi / fantasy', value:'mindbend'},
+      {label:'Comfort fun', sub:'action / adventure / animated', value:'comfort'}
+    ],
+    (v)=>{ answers.mood = v; step=2; stepEra(); }
+  );
+}
+
+function stepEra(){
+  renderQuestion(
+    'route.select_era',
+    'New signal or proven classic?',
+    [
+      {label:'Something recent', sub:'last few years', value:'new'},
+      {label:'Doesn\u2019t matter — just good', sub:'any era, ranked by quality', value:'any'}
+    ],
+    (v)=>{ answers.era = v; step=3; stepCommitment(); }
+  );
+}
+
+function stepCommitment(){
+  if(answers.type === 'movie'){
+    renderQuestion(
+      'route.select_runtime',
+      'How much runtime can you commit?',
+      [
+        {label:'Keep it tight', sub:'under ~110 min', value:'short'},
+        {label:'I\u2019ve got the whole evening', sub:'no limit', value:'long'}
+      ],
+      (v)=>{ answers.commitment = v; step=4; resolve(); }
+    );
+  } else {
+    renderQuestion(
+      'route.select_shape',
+      'Finished story, or something ongoing?',
+      [
+        {label:'A show that\u2019s wrapped up', sub:'complete, no cliffhangers', value:'ended'},
+        {label:'Currently running', sub:'still airing new seasons', value:'ongoing'}
+      ],
+      (v)=>{ answers.commitment = v; step=4; resolve(); }
+    );
+  }
+}
+
+const GENRES = {
+  movie: { laughs:35, tension:9648, feels:18, mindbend:878, comfort:28 },
+  tv:    { laughs:35, tension:9648, feels:18, mindbend:10765, comfort:10759 }
+};
+
+function buildDiscoverUrl(){
+  const type = answers.type;
+  const genre = GENRES[type][answers.mood];
+  const params = new URLSearchParams({
+    sort_by: 'popularity.desc',
+    'vote_count.gte': '150',
+    include_adult: 'false',
+    page: '1'
+  });
+  params.set('with_genres', genre);
+
+  const dateField = type === 'movie' ? 'primary_release_date' : 'first_air_date';
+  if(answers.era === 'new'){
+    const cutoff = new Date();
+    cutoff.setFullYear(cutoff.getFullYear() - 3);
+    params.set(`${dateField}.gte`, cutoff.toISOString().slice(0,10));
+  }
+
+  if(type === 'movie'){
+    if(answers.commitment === 'short'){
+      params.set('with_runtime.lte', '110');
+    } else {
+      params.set('with_runtime.gte', '110');
+    }
+  } else {
+    params.set('with_status', answers.commitment === 'ended' ? '3' : '0');
+  }
+
+  return `${TMDB_BASE}/discover/${type}?${params.toString()}`;
+}
+
+async function resolve(){
+  screenMode = 'loading';
+  activeOptions = [];
+  statusTag.textContent = 'node 4 / 4';
+  renderTrace(4);
+
+  const hops = [
+    'reading route parameters',
+    `querying tmdb.discover(${answers.type})`,
+    'filtering by rating threshold',
+    'selecting a match'
+  ];
+
+  bodyArea.innerHTML = `
+    <div class="eyebrow">route.resolving</div>
+    <div class="loading">
+      <div class="loading-track"><div class="pulse"></div></div>
+      <div class="loading-hops" id="loadingHops"></div>
+    </div>
+  `;
+  const hopsEl = document.getElementById('loadingHops');
+  hops.forEach((h, i)=>{
+    const div = document.createElement('div');
+    div.className = 'hop';
+    div.textContent = h;
+    div.style.animationDelay = (i * 0.12) + 's';
+    hopsEl.appendChild(div);
+  });
+
+  const hopEls = Array.from(hopsEl.children);
+  let hopIdx = 0;
+  const hopTimer = setInterval(()=>{
+    hopEls.forEach(el => el.classList.remove('active'));
+    if(hopIdx < hopEls.length){
+      hopEls[hopIdx].classList.add('active');
+      if(hopIdx > 0) hopEls[hopIdx-1].classList.remove('active');
+    }
+    if(hopIdx > 0) hopEls[hopIdx-1].classList.add('done');
+    hopIdx++;
+    if(hopIdx > hopEls.length) hopIdx = 0;
+  }, 420);
+
+  try{
+    const url = buildDiscoverUrl();
+    const res = await fetch(url, {
+      headers: { 'Authorization': `Bearer ${API_TOKEN}`, 'accept': 'application/json' }
+    });
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    let results = (data.results || []).filter(r => r.poster_path);
+
+    clearInterval(hopTimer);
+    hopEls.forEach(el => { el.classList.add('done'); el.classList.remove('active'); });
+
+    if(results.length === 0){
+      renderEmpty();
+      return;
+    }
+
+    window._resultPool = results;
+    window._resultIdx = new Set();
+    // brief pause so the completed hop list is visible before the reveal
+    setTimeout(showResult, 260);
+  } catch(err){
+    clearInterval(hopTimer);
+    renderError(err.message);
+  }
+}
+
+function pickUnusedResult(){
+  const pool = window._resultPool;
+  const used = window._resultIdx;
+  if(used.size >= pool.length) used.clear();
+  let idx;
+  do { idx = Math.floor(Math.random() * pool.length); } while(used.has(idx) && used.size < pool.length);
+  used.add(idx);
+  return pool[idx];
+}
+
+function showResult(){
+  screenMode = 'result';
+  activeOptions = [];
+  const item = pickUnusedResult();
+  const title = item.title || item.name;
+  const date = item.release_date || item.first_air_date || '';
+  const year = date ? date.slice(0,4) : 'TBD';
+  const rating = item.vote_average ? item.vote_average.toFixed(1) : '—';
+  const overview = item.overview || 'No synopsis on file.';
+
+  bodyArea.innerHTML = '';
+  bodyArea.classList.remove('node-enter');
+  void bodyArea.offsetWidth;
+  bodyArea.classList.add('node-enter');
+
+  const eyeEl = document.createElement('div');
+  eyeEl.className = 'eyebrow';
+  eyeEl.textContent = 'route.resolved — 200 OK';
+  bodyArea.appendChild(eyeEl);
+
+  const result = document.createElement('div');
+  result.className = 'result';
+  result.innerHTML = `
+    <div class="poster-wrap">
+      <img class="poster" src="${IMG_BASE}${item.poster_path}" alt="${title} poster" />
+    </div>
+    <div class="result-meta">
+      <h2 class="result-title">${title}</h2>
+      <div class="result-tags">${year} · ${answers.type.toUpperCase()} · ★ ${rating}</div>
+      <p class="result-overview">${overview}</p>
+      <div class="result-actions">
+        <button class="btn primary" id="rerollBtn">Reroll match <span style="opacity:.6">(r)</span></button>
+        <button class="btn" id="restartBtn">Start over</button>
+      </div>
+    </div>
+  `;
+  bodyArea.appendChild(result);
+
+  document.getElementById('rerollBtn').onclick = showResult;
+  document.getElementById('restartBtn').onclick = () => { answers = {}; stepType(); };
+}
+
+function renderEmpty(){
+  screenMode = 'empty';
+  activeOptions = [];
+  bodyArea.innerHTML = `
+    <div class="eyebrow">route.resolved — 204 No Content</div>
+    <h1>No match on this exact route.</h1>
+    <div class="status-line">Try loosening a filter — recent + tight runtime is a narrow lane.</div>
+    <div class="result-actions" style="margin-top:16px;">
+      <button class="btn primary" id="restartBtn2">Start over</button>
+    </div>
+  `;
+  document.getElementById('restartBtn2').onclick = () => { answers = {}; stepType(); };
+}
+
+function renderError(msg){
+  screenMode = 'error';
+  activeOptions = [];
+  bodyArea.innerHTML = `
+    <div class="eyebrow">route.error</div>
+    <h1>Connection dropped.</h1>
+    <div class="status-line err">${msg} — the TMDB request failed.</div>
+    <div class="result-actions" style="margin-top:16px;">
+      <button class="btn primary" id="retryBtn">Retry</button>
+    </div>
+  `;
+  document.getElementById('retryBtn').onclick = resolve;
+}
+
+// ---- keyboard shortcuts: numbers answer questions, r rerolls, s restarts ----
+document.addEventListener('keydown', (e)=>{
+  if(screenMode === 'question'){
+    const n = parseInt(e.key, 10);
+    if(n && n >= 1 && n <= activeOptions.length){
+      const opt = activeOptions[n-1];
+      opt.onPick(opt.value);
+    }
+  } else if(screenMode === 'result'){
+    if(e.key.toLowerCase() === 'r'){
+      const btn = document.getElementById('rerollBtn');
+      if(btn) btn.click();
+    } else if(e.key.toLowerCase() === 's'){
+      const btn = document.getElementById('restartBtn');
+      if(btn) btn.click();
+    }
+  }
 });
 
-// Animated chomping Pac-Man favicon, drawn on a canvas and swapped in as
-// the tab icon on an interval. No image assets needed for the animation.
-(() => {
-  const SIZE = 32;
-  const canvas = document.createElement('canvas');
-  canvas.width = SIZE;
-  canvas.height = SIZE;
-  const ctx = canvas.getContext('2d');
+document.getElementById('resetBtn').onclick = () => { answers = {}; stepType(); };
 
-  let link = document.querySelector("link[rel='icon']");
-  if (!link) {
-    link = document.createElement('link');
-    link.rel = 'icon';
-    document.head.appendChild(link);
-  }
-
-  // Mouth angle oscillates between fully open and closed.
-  const frameAngles = [36, 20, 4, 20]; // degrees of mouth opening, half-angle
-  let frame = 0;
-
-  function drawFrame(mouthHalfAngle) {
-    ctx.clearRect(0, 0, SIZE, SIZE);
-    const cx = SIZE / 2;
-    const cy = SIZE / 2;
-    const r = SIZE / 2 - 1;
-
-    ctx.fillStyle = '#f4e04d';
-    ctx.beginPath();
-    ctx.moveTo(cx, cy);
-    const startAngle = (mouthHalfAngle * Math.PI) / 180;
-    const endAngle = (2 * Math.PI) - startAngle;
-    ctx.arc(cx, cy, r, startAngle, endAngle, false);
-    ctx.closePath();
-    ctx.fill();
-
-    // eye
-    ctx.fillStyle = '#10141f';
-    ctx.beginPath();
-    ctx.arc(cx - 1, cy - r * 0.5, r * 0.09, 0, Math.PI * 2);
-    ctx.fill();
-
-    link.href = canvas.toDataURL('image/png');
-  }
-
-  drawFrame(frameAngles[0]);
-
-  setInterval(() => {
-    frame = (frame + 1) % frameAngles.length;
-    drawFrame(frameAngles[frame]);
-  }, 180);
-})();
-
-// ---------- Pac-Man Jump mini-game ----------
-(() => {
-  const canvas = document.getElementById('game-canvas');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-
-  const W = canvas.width;
-  const H = canvas.height;
-  const GROUND_Y = H - 34;
-
-  const overlay = document.getElementById('game-overlay');
-  const overlayText = document.getElementById('game-overlay-text');
-  const scoreEl = document.getElementById('game-score-val');
-  const bestEl = document.getElementById('game-best-val');
-
-  const COLORS = {
-    yellow: '#f4e04d',
-    coral: '#ff6b5e',
-    mint: '#4ade80',
-    blue: '#5ec8ff',
-    paper: '#eef0f4',
-    paperDim: '#b7bdcc',
-    line: 'rgba(238,240,244,0.14)'
-  };
-
-  const GHOST_COLORS = ['#ff6b5e', '#5ec8ff', '#f4a4e0', '#ffb347'];
-  const FRUIT_COLORS = ['#ff6b5e', '#f4e04d', '#4ade80'];
-
-  const GRAVITY = 0.0022;
-  const JUMP_VELOCITY = -0.62;
-  const GROUND_SPEED_START = 0.28; // px/ms
-  const GROUND_SPEED_MAX = 0.55;
-
-  let best = 0;
-  try {
-    best = parseInt(localStorage.getItem('pacjump_best') || '0', 10) || 0;
-  } catch (e) {
-    best = 0;
-  }
-  bestEl.textContent = best;
-
-  let state = 'idle'; // idle | playing | over
-  let player, obstacles, speed, distance, lastTime, mouthPhase, rafId, bonusPoints;
-
-  function resetState() {
-    player = {
-      x: 70,
-      y: GROUND_Y - 26,
-      w: 26,
-      h: 26,
-      vy: 0,
-      onGround: true
-    };
-    obstacles = [];
-    speed = GROUND_SPEED_START;
-    distance = 0;
-    mouthPhase = 0;
-    spawnTimer = 0;
-    bonusPoints = 0;
-  }
-
-  let spawnTimer = 0;
-
-  function spawnObstacle() {
-    const isFruit = Math.random() < 0.3;
-    if (isFruit) {
-      const fruitH = 40 + Math.random() * 30;
-      obstacles.push({
-        type: 'fruit',
-        x: W + 20,
-        y: GROUND_Y - fruitH,
-        w: 16,
-        h: 16,
-        color: FRUIT_COLORS[Math.floor(Math.random() * FRUIT_COLORS.length)],
-        caught: false
-      });
-    } else {
-      const h = 20 + Math.random() * 10;
-      obstacles.push({
-        type: 'ghost',
-        x: W + 20,
-        y: GROUND_Y - h,
-        w: 18,
-        h,
-        color: GHOST_COLORS[Math.floor(Math.random() * GHOST_COLORS.length)]
-      });
-    }
-  }
-
-  function jump() {
-    if (state === 'idle') {
-      startGame();
-      return;
-    }
-    if (state === 'over') {
-      startGame();
-      return;
-    }
-    if (player.onGround) {
-      player.vy = JUMP_VELOCITY;
-      player.onGround = false;
-    }
-  }
-
-  function startGame() {
-    resetState();
-    state = 'playing';
-    overlay.classList.add('hidden');
-    lastTime = performance.now();
-    rafId = requestAnimationFrame(loop);
-  }
-
-  function endGame() {
-    state = 'over';
-    if (Math.floor(distance / 10) + bonusPoints > best) {
-      best = Math.floor(distance / 10) + bonusPoints;
-      bestEl.textContent = best;
-      try { localStorage.setItem('pacjump_best', String(best)); } catch (e) {}
-    }
-    overlayText.textContent = 'Game over — tap to retry';
-    overlay.classList.remove('hidden');
-  }
-
-  function drawGround() {
-    ctx.strokeStyle = COLORS.line;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(0, GROUND_Y);
-    ctx.lineTo(W, GROUND_Y);
-    ctx.stroke();
-
-    ctx.fillStyle = COLORS.line;
-    const offset = (distance * speed * 0) % 20; // static dashes, simple
-    for (let x = -20; x < W + 20; x += 24) {
-      const dx = ((x - (distance % 24)) % (W + 40));
-      ctx.fillRect(dx, GROUND_Y + 6, 10, 2);
-    }
-  }
-
-  function drawPacman() {
-    const cx = player.x + player.w / 2;
-    const cy = player.y + player.h / 2;
-    const r = player.w / 2;
-
-    const angle = 0.18 + Math.abs(Math.sin(mouthPhase)) * 0.25;
-    ctx.fillStyle = COLORS.yellow;
-    ctx.beginPath();
-    ctx.moveTo(cx, cy);
-    ctx.arc(cx, cy, r, angle * Math.PI, (2 - angle) * Math.PI);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.fillStyle = '#10141f';
-    ctx.beginPath();
-    ctx.arc(cx - 2, cy - r * 0.55, r * 0.12, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  function drawGhost(o) {
-    const x = o.x, y = o.y, w = o.w, h = o.h;
-    ctx.fillStyle = o.color || COLORS.coral;
-    ctx.beginPath();
-    ctx.moveTo(x, y + h);
-    ctx.lineTo(x, y + h * 0.4);
-    ctx.arc(x + w / 2, y + h * 0.4, w / 2, Math.PI, 0);
-    ctx.lineTo(x + w, y + h);
-    // scalloped bottom
-    const scallops = 3;
-    const sw = w / scallops;
-    for (let i = scallops; i > 0; i--) {
-      const sx = x + i * sw;
-      ctx.quadraticCurveTo(sx - sw / 2, y + h - 6, sx - sw, y + h);
-    }
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.fillStyle = '#10141f';
-    ctx.beginPath();
-    ctx.arc(x + w * 0.35, y + h * 0.42, w * 0.1, 0, Math.PI * 2);
-    ctx.arc(x + w * 0.65, y + h * 0.42, w * 0.1, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  function drawFruit(o) {
-    const cx = o.x + o.w / 2;
-    const cy = o.y + o.h / 2;
-    const r = o.w / 2;
-
-    ctx.fillStyle = o.color || COLORS.coral;
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.strokeStyle = COLORS.mint;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(cx, cy - r);
-    ctx.lineTo(cx + 2, cy - r - 6);
-    ctx.stroke();
-  }
-
-  function loop(now) {
-    const dt = Math.min(now - lastTime, 40);
-    lastTime = now;
-
-    if (state !== 'playing') return;
-
-    distance += dt * speed;
-    speed = Math.min(GROUND_SPEED_MAX, speed + dt * 0.000006);
-    mouthPhase += dt * 0.02;
-
-    player.vy += GRAVITY * dt;
-    player.y += player.vy * dt;
-    if (player.y >= GROUND_Y - player.h) {
-      player.y = GROUND_Y - player.h;
-      player.vy = 0;
-      player.onGround = true;
-    }
-
-    spawnTimer -= dt;
-    if (spawnTimer <= 0) {
-      spawnObstacle();
-      spawnTimer = 900 + Math.random() * 900 - speed * 400;
-    }
-
-    for (let i = obstacles.length - 1; i >= 0; i--) {
-      const o = obstacles[i];
-      o.x -= speed * dt;
-      if (o.x + o.w < 0) {
-        obstacles.splice(i, 1);
-        continue;
-      }
-      const px1 = player.x + 4, px2 = player.x + player.w - 4;
-      const py1 = player.y + 4, py2 = player.y + player.h - 2;
-      const ox1 = o.x, ox2 = o.x + o.w;
-      const oy1 = o.y, oy2 = o.y + o.h;
-      const overlaps = px2 > ox1 && px1 < ox2 && py2 > oy1 && py1 < oy2;
-
-      if (o.type === 'fruit') {
-        if (overlaps && !o.caught) {
-          o.caught = true;
-          bonusPoints += 25;
-          obstacles.splice(i, 1);
-        }
-      } else if (overlaps) {
-        endGame();
-      }
-    }
-
-    ctx.clearRect(0, 0, W, H);
-    drawGround();
-    obstacles.forEach((o) => (o.type === 'fruit' ? drawFruit(o) : drawGhost(o)));
-    drawPacman();
-
-    scoreEl.textContent = Math.floor(distance / 10) + bonusPoints;
-
-    if (state === 'playing') {
-      rafId = requestAnimationFrame(loop);
-    }
-  }
-
-  // static render for idle state
-  function drawIdle() {
-    resetState();
-    ctx.clearRect(0, 0, W, H);
-    drawGround();
-    drawPacman();
-  }
-  drawIdle();
-
-  canvas.addEventListener('click', jump);
-  overlay.addEventListener('click', jump);
-  window.addEventListener('keydown', (e) => {
-    if (e.code === 'Space') {
-      e.preventDefault();
-      jump();
-    }
-  });
-})();
+// boot
+stepType();
