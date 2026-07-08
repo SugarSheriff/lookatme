@@ -20,6 +20,40 @@ document.addEventListener('DOMContentLoaded', () => {
     );
 
     sections.forEach((section) => navObserver.observe(section));
+    // ---------- Mobile nav toggle ----------
+  const nav = document.querySelector('nav .wrap');
+  if (nav) {
+    const toggle = document.createElement('button');
+    toggle.className = 'nav-toggle';
+    toggle.setAttribute('aria-label', 'Toggle menu');
+    toggle.innerHTML = '<span></span><span></span><span></span>';
+    nav.appendChild(toggle);
+
+    const navlinks = document.querySelector('.navlinks');
+    toggle.addEventListener('click', () => {
+      toggle.classList.toggle('open');
+      navlinks.classList.toggle('open');
+    });
+    navlinks.querySelectorAll('a').forEach((link) => {
+      link.addEventListener('click', () => {
+        toggle.classList.remove('open');
+        navlinks.classList.remove('open');
+      });
+    });
+  }
+
+  // ---------- Magnetic buttons ----------
+  document.querySelectorAll('.btn').forEach((btn) => {
+    btn.addEventListener('mousemove', (e) => {
+      const rect = btn.getBoundingClientRect();
+      const x = e.clientX - rect.left - rect.width / 2;
+      const y = e.clientY - rect.top - rect.height / 2;
+      btn.style.transform = `translate(${x * 0.15}px, ${y * 0.3}px)`;
+    });
+    btn.addEventListener('mouseleave', () => {
+      btn.style.transform = '';
+    });
+  });
   }
 
   // ---------- Scroll progress bar ----------
@@ -254,6 +288,12 @@ document.addEventListener('DOMContentLoaded', () => {
       best = Math.floor(distance / 10) + bonusPoints;
       bestEl.textContent = best;
       try { localStorage.setItem('pacjump_best', String(best)); } catch (e) {}
+      const bestWrap = document.querySelector('.game-best');
+      if (bestWrap) {
+        bestWrap.classList.remove('flash');
+        void bestWrap.offsetWidth; // restart animation
+        bestWrap.classList.add('flash');
+      }
     }
     overlayText.textContent = 'Game over — tap to retry';
     overlay.classList.remove('hidden');
