@@ -70,6 +70,43 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('scroll', updateProgress, { passive: true });
   updateProgress();
 
+  // ---------- Scroll-aware nav (hide on scroll down, reveal on scroll up) ----------
+  const scrollNav = document.querySelector('nav');
+  if (scrollNav) {
+    let lastScrollY = window.scrollY;
+    let navTicking = false;
+    const REVEAL_THRESHOLD = 80; // px from top where nav always stays visible
+
+    const updateNavVisibility = () => {
+      const currentScrollY = window.scrollY;
+      const mobileMenuOpen = document.querySelector('.navlinks.open');
+
+      if (mobileMenuOpen) {
+        // never hide the nav while the mobile menu is open
+      } else if (currentScrollY <= REVEAL_THRESHOLD) {
+        scrollNav.classList.remove('nav-hidden');
+      } else if (currentScrollY > lastScrollY) {
+        scrollNav.classList.add('nav-hidden');
+      } else if (currentScrollY < lastScrollY) {
+        scrollNav.classList.remove('nav-hidden');
+      }
+
+      lastScrollY = currentScrollY;
+      navTicking = false;
+    };
+
+    window.addEventListener(
+      'scroll',
+      () => {
+        if (!navTicking) {
+          requestAnimationFrame(updateNavVisibility);
+          navTicking = true;
+        }
+      },
+      { passive: true }
+    );
+  }
+
   // ---------- Scroll reveal ----------
   const revealTargets = document.querySelectorAll(
     '.section-head, .role, .credential, .skill-group, .about-text'
