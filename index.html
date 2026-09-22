@@ -169,6 +169,21 @@
     <div class="role">
       <div class="role-meta">2026<span class="company">Personal project</span></div>
       <div>
+        <h3 class="role-title">Handoff — Blender → glTF → REST publishing add-on</h3>
+        <ul>
+          <li>A Blender Python add-on that preflights a scene for the problems that break 3D assets downstream: texture color spaces checked by the PBR slot they feed, centimeter/meter mix-ups, procedural nodes glTF can't carry, and triangle budgets counted after modifiers. It then exports GLB and publishes it to an ingest API from a sidebar panel.</li>
+          <li>The upload client is stdlib-only. It uses idempotency keys, backoff with jitter, and Retry-After, and runs on a worker thread so Blender never freezes. It's tested against a mock ingest server that injects 503s, 429s, and lost acknowledgements. The live demo includes a real in-browser GLB inspector (three.js) that runs the same validation the server does.</li>
+        </ul>
+        <div class="hero-cta" style="margin-top: 16px;">
+          <a class="btn btn-primary" href="https://sugarsheriff.github.io/blender-handoff/" target="_blank" rel="noopener">View live demo</a>
+          <a class="btn btn-ghost" href="https://github.com/SugarSheriff/blender-handoff" target="_blank" rel="noopener">Source on GitHub</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="role">
+      <div class="role-meta">2026<span class="company">Personal project</span></div>
+      <div>
         <h3 class="role-title">Sync Hub — SAP B1 ↔ Wrike integration demo</h3>
         <ul>
           <li>Interactive simulation of a real integration pattern: an order in SAP Business One flows through a sync queue and lands as a fulfillment task in Wrike, with live retry/backoff on injected failures.</li>
@@ -265,6 +280,8 @@
           <span class="chip">PowerShell</span>
           <span class="chip">Git</span>
           <span class="chip">REST APIs</span>
+          <span class="chip">Blender Python API</span>
+          <span class="chip">glTF 2.0</span>
           <span class="chip">SAP B1</span>
           <span class="chip">Postman</span>
         </div>
