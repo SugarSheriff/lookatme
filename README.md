@@ -12,12 +12,13 @@ A single-page portfolio built to give recruiters and hiring managers concrete pr
 
 - **Hero** — an animated SVG pipeline visual (SAP B1 → Wrike → SQL Server → DAM/EDI → "your stack") that sets up the integration-engineer framing before any text does
 - **Experience** — role history from Tier I support through current integration development work
-- **Projects** — five linked showcase repos, each a live interactive demo plus real production-pattern code samples:
+- **Projects** — six linked showcase repos, each a live interactive demo plus real production-pattern code samples:
   - [**Handoff**](https://github.com/SugarSheriff/blender-handoff) — Blender Python add-on: scene preflight, glTF export, and publishing to a REST ingest API
   - [**Sync Hub**](https://github.com/SugarSheriff/sync-hub) — SAP Business One ↔ Wrike integration pipeline
   - [**Tape Read**](https://github.com/SugarSheriff/edi-pipeline) — EDI X12 850 purchase order parsing and validation
   - [**FlickFinder**](https://github.com/SugarSheriff/FlickFinder) — decision-tree movie/TV picker against the live TMDB API
   - [**AssetRoute**](https://github.com/SugarSheriff/dam-sync) — DAM asset sync pipeline with metadata validation and multi-system distribution
+  - [**Keypad Simulator**](https://github.com/SugarSheriff/pinsimulator) — a deliberately cruel once-a-day code-guessing game, just for fun
 - **Stack** — languages, databases/reporting tools, and cloud/integration tooling used day to day
 - **About** — background and credentials
 - **Contact** — email, phone, GitHub, LinkedIn
